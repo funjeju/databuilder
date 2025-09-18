@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'; // useState 추가
+import { processImagesForUpload } from '../services/storageService'; // 이미지 업로드 함수 추가
 import type { Place, ImageInfo, Comment, LinkedSpot, PublicInfo } from '../types';
 import {
   TARGET_AUDIENCE_OPTIONS,
@@ -90,6 +91,7 @@ const LinkedSpotEditor: React.FC<{
 
 const ReviewDashboard: React.FC<ReviewDashboardProps> = ({ initialData, onSave, allSpots, onAddStubSpot }) => {
   const [data, setData] = useState<Place>(initialData);
+  const [isUploading, setIsUploading] = useState(false); // 업로드 상태 변수 추가
 
   const handleInputChange = <K extends keyof Place,>(field: K, value: Place[K]) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -180,7 +182,32 @@ const ReviewDashboard: React.FC<ReviewDashboardProps> = ({ initialData, onSave, 
     const newLinkedSpots = (data.linked_spots || []).filter((_, i) => i !== index);
     handleInputChange('linked_spots', newLinkedSpots);
   };
+  const removeLinkedSpot = (index: number) => {
+    const newLinkedSpots = (data.linked_spots || []).filter((_, i) => i !== index);
+    handleInputChange('linked_spots', newLinkedSpots);
+  };
 
+  // ▼▼▼ [추가될 새로운 함수] ▼▼▼
+  const handleSaveClick = async () => {
+    setIsUploading(true); // 업로드 시작, 로딩 상태로 변경
+    try {
+      // 1. 이미지 처리 함수를 먼저 호출합니다.
+      const dataWithImageUrls = await processImagesForUpload(data);
+      
+      // 2. 이미지 처리가 완료된 최종 데이터를 부모 컴포넌트(App.tsx)로 전달합니다.
+      onSave(dataWithImageUrls);
+
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      alert("이미지 업로드 중 오류가 발생했습니다.");
+    } finally {
+      setIsUploading(false); // 업로드 종료, 로딩 상태 해제
+    }
+  };
+  // ▲▲▲ [여기까지 추가] ▲▲▲
+
+  return (
+    // ... (기존 코드)
 
   return (
     <div className="space-y-6">
@@ -301,7 +328,9 @@ const ReviewDashboard: React.FC<ReviewDashboardProps> = ({ initialData, onSave, 
       </div>
       
       <div className="mt-8 flex justify-end">
-        <Button onClick={() => onSave(data)} size="large">최종 저장</Button>
+        <Button onClick={handleSaveClick} size="large" disabled={isUploading}>
+          {isUploading ? '이미지 업로드 중...' : '최종 저장'}
+        </Button>
       </div>
     </div>
   );

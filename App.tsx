@@ -1,3 +1,5 @@
+import { db } from './services/firebase'; // firebase.ts 임포트
+import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import React, { useState, useCallback, useMemo } from 'react';
 import type { Place, InitialFormData } from './types';
 import InitialForm from './components/InitialForm';
@@ -13,6 +15,25 @@ type AppStep = 'library' | 'initial' | 'loading' | 'review';
 
 const App: React.FC = () => {
   const [spots, setSpots] = useState<Place[]>([]);
+  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+
+React.useEffect(() => {
+  setIsLoading(true);
+  const q = query(collection(db, "places"), orderBy("updated_at", "desc"));
+
+  // onSnapshot은 DB 변경 시 실시간으로 데이터를 업데이트해주는 마법 같은 함수입니다.
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const spotsData = querySnapshot.docs.map(doc => ({
+      ...doc.data(),
+      place_id: doc.id
+    })) as Place[];
+    setSpots(spotsData);
+    setIsLoading(false);
+  });
+
+  // 컴포넌트가 언마운트될 때 실시간 리스너를 정리합니다.
+  return () => unsubscribe();
+}, []);
   const [step, setStep] = useState<AppStep>('library');
   const [dataToEdit, setDataToEdit] = useState<Place | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -104,21 +125,31 @@ const App: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleConfirmSave = () => {
+  const handleConfirmSave = async () => {
     if (finalData) {
-      const existingIndex = spots.findIndex(s => s.place_id === finalData.place_id);
-      const now = { seconds: Date.now() / 1000, nanoseconds: 0 };
-      const dataToSave = { ...finalData, updated_at: now, status: finalData.status === 'stub' ? 'draft' : finalData.status };
+      // Firestore에 저장할 최종 데이터 객체를 준비합니다.
+      // Firestore의 Timestamp를 사용하여 서버 시간을 기준으로 updated_at을 기록합니다.
+      const now = Timestamp.now();
+      const dataToSave = { 
+        ...finalData, 
+        updated_at: now, 
+        // 'stub' 상태는 데이터가 완성되었으므로 'draft'로 변경하여 저장합니다.
+        status: finalData.status === 'stub' ? 'draft' : finalData.status 
+      };
 
-      if (existingIndex > -1) {
-        const updatedSpots = [...spots];
-        updatedSpots[existingIndex] = dataToSave;
-        setSpots(updatedSpots);
-      } else {
-        setSpots(prev => [...prev, dataToSave]);
+      try {
+        // Firestore 'places' 컬렉션에 finalData.place_id를 문서 ID로 사용하여 데이터를 저장(덮어쓰기)합니다.
+        // 문서가 존재하지 않으면 새로 생성하고, 존재하면 내용을 업데이트합니다.
+        await setDoc(doc(db, "places", dataToSave.place_id), dataToSave);
+        
+        console.log('Final data saved to Firestore:', dataToSave.place_id);
+        setIsDataSaved(true); // 저장 성공 상태로 변경
+
+      } catch (e) {
+        console.error("Error writing document to Firestore: ", e);
+        setError("데이터 저장 중 오류가 발생했습니다. 콘솔을 확인해주세요.");
+        setIsDataSaved(false); // 저장 실패 상태로 변경
       }
-      console.log('Final data saved:', JSON.stringify(dataToSave, null, 2));
-      setIsDataSaved(true);
     }
   };
 
