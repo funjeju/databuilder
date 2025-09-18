@@ -1,7 +1,6 @@
 import { db } from './services/firebase'; // firebase.ts 임포트
-import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { collection, query, orderBy, onSnapshot, doc, setDoc, Timestamp } from 'firebase/firestore'; 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react'; // useEffect 추가
 import type { Place, InitialFormData } from './types';
 import InitialForm from './components/InitialForm';
 import ReviewDashboard from './components/ReviewDashboard';

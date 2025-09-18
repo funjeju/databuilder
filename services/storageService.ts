@@ -1,6 +1,6 @@
 import { storage } from './firebase'; // 우리가 만든 firebase.ts 파일
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import type { ImageInfo } from '../types';
+import type { Place, ImageInfo } from '../types'; // Place 타입을 추가로 import 합니다.
 
 // 이미지 파일을 Storage에 업로드하고, 다운로드 URL을 반환하는 함수
 export const uploadImage = async (placeId: string, imageFile: File): Promise<string> => {
