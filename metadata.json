@@ -1,0 +1,5 @@
+{
+  "name": "K-LOKAL JSON Extractor",
+  "description": "An AI-assisted data building tool for local experts to convert their knowledge into structured JSON data using Gemini. Experts provide free-form descriptions, and the AI generates a structured data draft for review and editing.",
+  "requestFramePermissions": []
+}
