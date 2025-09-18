@@ -143,7 +143,7 @@ You are a specialized data extraction AI. Your goal is to act as if you have vis
 `;
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.5-pro",
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
