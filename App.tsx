@@ -1,5 +1,6 @@
 import { db } from './services/firebase'; // firebase.ts 임포트
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, setDoc, Timestamp } from 'firebase/firestore'; 
 import React, { useState, useCallback, useMemo } from 'react';
 import type { Place, InitialFormData } from './types';
 import InitialForm from './components/InitialForm';

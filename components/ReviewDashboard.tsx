@@ -182,11 +182,7 @@ const ReviewDashboard: React.FC<ReviewDashboardProps> = ({ initialData, onSave, 
     const newLinkedSpots = (data.linked_spots || []).filter((_, i) => i !== index);
     handleInputChange('linked_spots', newLinkedSpots);
   };
-  const removeLinkedSpot = (index: number) => {
-    const newLinkedSpots = (data.linked_spots || []).filter((_, i) => i !== index);
-    handleInputChange('linked_spots', newLinkedSpots);
-  };
-
+  
   // ▼▼▼ [추가될 새로운 함수] ▼▼▼
   const handleSaveClick = async () => {
     setIsUploading(true); // 업로드 시작, 로딩 상태로 변경
@@ -205,9 +201,6 @@ const ReviewDashboard: React.FC<ReviewDashboardProps> = ({ initialData, onSave, 
     }
   };
   // ▲▲▲ [여기까지 추가] ▲▲▲
-
-  return (
-    // ... (기존 코드)
 
   return (
     <div className="space-y-6">
